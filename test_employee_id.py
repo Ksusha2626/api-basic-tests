@@ -15,6 +15,7 @@ DEFAULT_HEADERS = {
                   "Chrome/97.0.4692.71 Safari/537.36"
 }
 
+
 @pytest.mark.dummy
 class TestApiEmployee:
 
@@ -47,8 +48,7 @@ class TestApiEmployee:
         response = requests.post(
             DUMMY_URL + PREFIX + VERSION + "/employee/1",
             headers=DEFAULT_HEADERS)
-        title = BeautifulSoup(response.text, 'html.parser').find(
-            'title').getText()
+        title = BeautifulSoup(response.text, 'html.parser').find('title').getText()
 
         assert response.status_code == 405
         assert title == 'An Error Occurred: Method Not Allowed'
@@ -91,9 +91,7 @@ class TestApiEmployee:
     @allure.step("[GET] /employee/id")
     def test_multiple_request(self):
         """GET /employee/{id} multiple request in a row"""
-        i = 0
-        while i <= 5:
-            i += 1
+        for i in range(5):
             employee_id = random.randint(1, 20)
             response = requests.get(
                 DUMMY_URL + PREFIX + VERSION + f"/employee/{employee_id}",

@@ -1,6 +1,3 @@
-import random
-import string
-
 import allure
 import pytest
 import requests
@@ -15,15 +12,6 @@ DEFAULT_HEADERS = {
                   "AppleWebKit/537.36 (KHTML, like Gecko) "
                   "Chrome/97.0.4692.71 Safari/537.36"
 }
-
-
-def random_string(length=8):
-    return ''.join(random.choice(string.ascii_letters + string.digits) for _ in
-                   range(length))
-
-
-def random_digits(length=8):
-    return ''.join(random.choice(string.digits) for _ in range(length))
 
 
 def allure_repr(response):
@@ -47,14 +35,9 @@ def allure_repr(response):
 @pytest.mark.dummy
 class TestApiEmployeeCreate:
 
-    @allure.step("[POST] Get /create")
-    def test_create_employee(self):
+    @allure.step("[POST] /create")
+    def test_create_employee(self, data):
         """Create employee"""
-        data = {
-            "name": "Yury",
-            "surname": "Pavlov",
-            "phone": "375291117788"
-        }
         response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
                                  data=data,
                                  headers=DEFAULT_HEADERS)
@@ -73,14 +56,9 @@ class TestApiEmployeeCreate:
         # There should be DB info check
 
     @pytest.mark.xfail(reason='Returns a successful result with new user_id')
-    @allure.step("[POST] Get /create")
-    def test_double_create(self):
+    @allure.step("[POST] /create")
+    def test_double_create(self, data):
         """Double request with the added user"""
-        data = {
-            "name": "Yury",
-            "surname": "Pavlov",
-            "phone": "375291117788"
-        }
         response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
                                  data=data,
                                  headers=DEFAULT_HEADERS)
@@ -93,7 +71,7 @@ class TestApiEmployeeCreate:
         # There should be check, that user hasn't been added to the DB again
 
     @pytest.mark.xfail(reason='Returns a successful result with new user_id')
-    @allure.step("[POST] Get /create")
+    @allure.step("[POST] /create")
     def test_create_employee_without_body_request(self):
         """Create employee without body request"""
         response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
@@ -105,43 +83,27 @@ class TestApiEmployeeCreate:
             "code": 400,
         }))
 
-    @allure.step("[POST] Get /create")
-    def test_multiple_request(self):
+    @allure.step("[POST] /create")
+    def test_multiple_request(self, data):
         """/create multiple request in a row"""
-        data = {
-            "name": random_string().title(),
-            "surname": random_string().title(),
-            "phone": random_digits(length=11)
-        }
-        i = 0
-        while i <= 3:
-            i += 1
-            requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
-                          data=data,
-                          headers=DEFAULT_HEADERS)
-        response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
-                                 data=data,
-                                 headers=DEFAULT_HEADERS)
+        response = None
+        for i in range(10):
+            response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
+                                     data=data,
+                                     headers=DEFAULT_HEADERS)
         allure_repr(response)
         assert response.status_code == 429
-        title = BeautifulSoup(response.text, 'html.parser').find(
-            'title').getText()
+        title = BeautifulSoup(response.text, 'html.parser').find('title').getText()
         assert title == 'Too Many Requests'
 
-    @allure.step("[POST] Get /create")
-    def test_incorrect_http_method(self):
+    @allure.step("[POST] /create")
+    def test_incorrect_http_method(self, data):
         """Test /create with incorrect http method"""
-        data = {
-            "name": "Yury",
-            "surname": "Pavlov",
-            "phone": "375291117788"
-        }
         response = requests.post(DUMMY_URL + PREFIX + VERSION + "/create",
                                  data=data,
                                  headers=DEFAULT_HEADERS)
         allure_repr(response)
-        title = BeautifulSoup(response.text, 'html.parser').find(
-            'title').getText()
+        title = BeautifulSoup(response.text, 'html.parser').find('title').getText()
 
         assert response.status_code == 405
         assert title == 'An Error Occurred: Method Not Allowed'
